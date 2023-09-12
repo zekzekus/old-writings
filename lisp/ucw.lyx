@@ -1,0 +1,592 @@
+#LyX 1.5.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass article
+\language turkish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+UnCommon Web ile 
+\begin_inset Quotes eld
+\end_inset
+
+Merhaba Dünya
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author
+Zekeriya KOÇ <zkoc@metkoi.com>
+\end_layout
+
+\begin_layout Date
+
+\newpage
+
+\end_layout
+
+\begin_layout Abstract
+Bu yazı, Common Lisp ile geliştirilmiş olan UnCommon Web geliştirme çatısına
+ basit bir örnek aracılığı ile giriş seviyesinde bilgi vermek amacındadır.
+\end_layout
+
+\begin_layout Abstract
+
+\newpage
+
+\end_layout
+
+\begin_layout Abstract
+\begin_inset LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Abstract
+
+\newpage
+
+\end_layout
+
+\begin_layout Section
+Giriş - Kurulum
+\end_layout
+
+\begin_layout Standard
+Ne zamandır fırsat bulamadığım UnCommon Web geliştirme çatısı ile bir kaç
+ deneme yapabildim sonunda.
+ Kurcalamaya başlamak için önce UCW'i kurmam gerekti doğal olarak.
+ Oldukça fazla sayıda olan bağımlı olduğu paketleri tek tek kurmak yerine
+ http://common-lisp.net/project/UCW/UCW-boxset.tar.gz adresinden UCW-boxset
+ paketini indirdim.
+ Windows sistemimde çeşitli hatalar aldığımdan sanal makine üzerindeki Debian
+ sistemime kurdum.
+ Kurdum derken ev klasörümde arşiv dosyasını açtım sadece.
+ Gerisi UCW-boxset klasöründeki "start.lisp" dosyasını Lisp sistemine yüklemekten
+ ibaret zaten.
+ Veritabanı erişimi için (malum web programlama veritabanı olmadan olmaz)
+ clsql paketini kullandım.
+ Emacs içinde "M-x slime" komutu ile başlattığım oturumuma önce Uncommon
+ web çatısını,
+\end_layout
+
+\begin_layout Quote
+(load "/home/zekus/dev/lisp/UCW-boxset/start.lisp")
+\end_layout
+
+\begin_layout Standard
+komutu ile yükledim.
+ Ardından çok basit bir SQL veritabanı olan sqlite3 veritabanına erişmek
+ için kullanacağım clsql-sqlite3 paketini yükledim.
+ Verdiğim komut;
+\end_layout
+
+\begin_layout Quote
+(asdf:operate 'asdf:load-op 'clsql-sqlite3)
+\end_layout
+
+\begin_layout Standard
+start.lisp dosyasını yüklediğimde UCW'in gömülü web sunucusu 8080 numaralı
+ porttan istekleri dinlemeye başlamış olmalıydı.
+ Test etmek için tarayıcıdan "http://localhost:8080" adresine girdim.
+ Örnek UCW uygulamaları karşıma gelince kurulumumun sorunsuz bir şekilde
+ gerçekleştiğini anlamış oldum.
+ 
+\end_layout
+
+\begin_layout Section
+UnCommon Web
+\end_layout
+
+\begin_layout Standard
+Şimdi kendimce yazdığım örnek uygulamanın satır satır neler yaptığına bir
+ bakalım; 
+\end_layout
+
+\begin_layout Standard
+(in-package :it.bese.UCW-user)
+\end_layout
+
+\begin_layout Standard
+(defvar *zekus-deneme-1* (make-instance 'cookie-session-application :url-prefix
+ "/zekus/"))
+\end_layout
+
+\begin_layout Standard
+(register-application *default-server* *zekus-deneme-1*)
+\end_layout
+
+\begin_layout Standard
+(defentry-point "deneme1.UCW" 
+\end_layout
+
+\begin_layout Standard
+\InsetSpace ~
+\InsetSpace ~
+(:application *zekus-deneme-1*) 
+\end_layout
+
+\begin_layout Standard
+\InsetSpace ~
+\InsetSpace ~
+() 
+\end_layout
+
+\begin_layout Standard
+\InsetSpace ~
+\InsetSpace ~
+(call 'deneme-component)) 
+\end_layout
+
+\begin_layout Standard
+Burada ilk olarak çalışacağımız paketi belirtiyoruz ki UCW'in fonksiyonlarına,
+ makrolarına, değişkenlerine paket ön ekini belirtmeden erişebilelim.
+ Ardından *zekus-deneme-1* isimli global bir değişkene oluşturduğumuz uygulamayı
+ atıyoruz.
+ Uygulamamızın tarayıcıdan erişimi için kullanılacak olan ön eki de burada
+ "/zekus/" olarak belirtiyoruz.
+ UCW'in öntanımlı sunucusunun uygulamamızdan haberdar olması için uygulamayı
+ kayıt ediyoruz (register-application ...).
+ Ve son olarak uygulamamıza bir başlangıç noktası belirtiyoruz.
+ Bu nokta "deneme1.UCW" olarak belirlendi.
+ Yani uygulamayı bitirip derlediğimizde tarayıcı adres çubuğuna "HTTP://localhos
+t:8080/zekus/deneme1.UCW" yazarak uygulamamızı çalıştıracağız.
+ Peki bunu yaptığımızda ne olacak? Hangi fonksiyonumuz sayfayı icra edecek?
+ Bunun cevabı "defentrypoint" makrosunun gövdesinde verilmiş.
+ Giriş noktası olarak "deneme-component" isimli bileşen kontrolü alacak
+ ve sayfayı inşa edecek.
+ 
+\newline
+
+\end_layout
+
+\begin_layout Standard
+Buraya kadar uygulamamızın ilk tanımlamalarını yaptık.
+ Şimdi giriş noktasından göreve çağrılan "deneme-component" isimli bileşeni
+ tanımlayalım.
+ Bunun için defcomponent isimli bir makro kullanıyoruz.
+ 
+\end_layout
+
+\begin_layout Quote
+(defcomponent deneme-component (simple-window-component) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+((mesaj :accessor mesaj :initarg :mesaj :initform nil) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(sorgu-veri :accessor sorgu-veri :initarg :sorgu-veri :initform nil) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(sorgu-kolon :accessor sorgu-kolon :initarg :sorgu-kolon :initform nil)))
+ 
+\end_layout
+
+\begin_layout Standard
+Bileşenimiz "simple-window-component" isimli UCW'in sağladığı bir bileşenden
+ türüyor ve üç tane yeni slot tanımlıyor.
+ Bu kısım sadece bileşenimizin tanımı.
+ Ama bileşenimizin kendini (sayfayı) nasıl inşa edeceğini "render" isimli
+ bir metod ile belirleyeceğiz.
+ Bu metod "deneme-component" bileşeninin "sanatçı" elleri.
+ İşte kodu: 
+\end_layout
+
+\begin_layout Quote
+(defmethod render ((d deneme-component)) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<:hr) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<:p (<:h1 "Merhaba Dünya !!!!!")) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<:hr) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<:h5 "by zekUs") 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<UCW:a :action (deneme d) "Deneme") 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<UCW:a :action (deneme1 d) "Deneme Sil") 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<UCW:a :action (sorgula d) "Veritabanından Sorgula Getir") 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<UCW:a :action (veritabani-sifirla d) "Veritabanı Sıfırla") 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(<UCW:a :href "HTTP://zekus.metkoi.com" :target "_a" "zekUs") 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(when (mesaj d) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(<:br)(<:as-HTML (mesaj d))) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(when (and (sorgu-veri d) (sorgu-kolon d)) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(<:table :border "1" :cellpadding "3" :cellspacing "0" 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(<:tr 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(dolist (kolon (sorgu-kolon d)) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(<:th (<:as-HTML kolon)))) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(dolist (satir (sorgu-veri d)) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(<:tr 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(dolist (veri satir) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(<:td (<:as-HTML veri)))))))) 
+\end_layout
+
+\begin_layout Standard
+render metodu "deneme-component" isimli bileşenin o andaki bir örneğini
+ parametre olarak alır(d).
+ Yani bileşenin slotlarına bu metod içinden erişebileceğiz.
+ YACLML isimli bir paket yardımı ile burada doğrudan HTML kodu yazıyoruz.
+ Biraz alıştıktan sonra düz HTML yazmaktan çok farklı bir durum olmuyor.
+ UCW'in TAL şablon tanımlama dilini kullanma özelliği de var fakat ben bunu
+ henüz denemedim.
+ Ayrıca Seaside kullanan Ramon Leon'un kullandığı programlama dili içinde
+ (aynı sözdizimi ile)HTML yazmanın şablon kullanmaktan daha verimli olduğu
+ yönündeki argümanlarını ikna edici bulduğumdan önce bu yöntemde biraz ilerlemek
+ istiyorum.
+ Yukarıdaki kodda UCW'i ilgilendiren bölüm tanımladığımız bağlantılara atadığımı
+z "action"lar.
+ Son örnekteki bağlantı klasik url ile yönlendirilen bir bağlantı fakat
+ önceki ikisi "deneme-component" bileşenimiz için tanımlayacağımız "action"lara
+ birer çağrı içeriyorlar.
+ Örnek kodumuzun son parçası da bu "action"lara ait: 
+\end_layout
+
+\begin_layout Quote
+(defaction deneme ((d deneme-component)) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(setf (mesaj d) "denemeAction"))
+\newline
+
+\end_layout
+
+\begin_layout Quote
+(defaction deneme1 ((d deneme-component)) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(setf (mesaj d) nil))
+\newline
+
+\end_layout
+
+\begin_layout Quote
+(defaction sorgula ((d deneme-component)) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(clsql:connect '("/home/zekus/dev/lisp/UCW_code/deneme.db") :database-type
+ :sqlite3 :if-exists :old)
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(multiple-value-bind (veri kolon) (clsql:query "select * from tablo")
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(setf (sorgu-veri d) veri) (setf (sorgu-kolon d) kolon)))
+\newline
+
+\end_layout
+
+\begin_layout Quote
+(defaction veritabani-sifirla ((d deneme-component)) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+(when (clsql:connected-databases) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(clsql:disconnect) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(setf (sorgu-kolon d) nil) 
+\end_layout
+
+\begin_layout Quote
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+\InsetSpace ~
+(setf (sorgu-veri d) nil))) 
+\end_layout
+
+\begin_layout Standard
+Sayfadaki bağlantılara tıkladığınızda (href ile tanımlanan bağlantı haricinde)
+ bu koddaki ilgili aksiyon devreye girer ve gövdesindeki kodu işletir.
+ İşi bittiğinde kontrolü tekrar çağırıldığı bileşene teslim eder ve bileşen
+ kendisini (sayfayı ya da sayfanın bir kısmını) inşa eder.
+ Aksiyonlar da aynı render metodu gibi kendilerini çağıran bilşenenin o
+ anki örneğini parametre olarak alırlar ve bileşen slotlarında değişiklik
+ yapabilirler(yukarıdaki kod bunu yapıyor).
+\newline
+
+\end_layout
+
+\begin_layout Standard
+Örnek koda genel olarak baktığımızda şunu görürüz, bir bileşen tanımlanmış.
+ Bu bileşeni bir masaüstü programının "container" tipi bir bileşen olarak
+ düşünebilirsiniz.
+ Buna düğmeler eklenmiş (web bağlantıları).
+ Ve her düğmeye basıldığında düğmenin altına yazılan kod çalışıyor (aksiyonlar).
+ Arada web programlamaya özgü kontroller, problemler ve hamallıklarla uğraşmıyor
+sunuz ve probleme odaklanmanız kolaylaşıyor.
+ Tabii ki bunlar benim şahsi düşüncelerim ama Seaside ile ilk kez farkettiğim
+ bu harika yaklaşım Common Lisp ile de çok güçlü bir şekilde karşımızda.
+ 
+\newline
+
+\end_layout
+
+\begin_layout Standard
+Not: UCW ve Lisp hakkında çok derin bir bilgim yok.
+ Bu yüzden olası hataları, önerilerinizi, eklemek istediklerinizi yorum
+ olarak belirtmekten çekinmeyin.
+\newline
+
+\end_layout
+
+\begin_layout Standard
+Uncommon Web geliştirme çatısını kullanan bazı uygulamalara bu adreslerden
+ ulaşabilir ve inceleyebilirsiniz: http://www.paragent.com/
+\newline
+
+\end_layout
+
+\begin_layout Standard
+Uncommon Web ile aynı programlama yaklaşımını kullanan, özgür bir Smalltalk
+ gerçekleştirimi olan Squeak üzerinde Seaside web geliştirme çatısı kullanılarak
+ yazılan bir uygulama: DabbleDB
+\end_layout
+
+\end_body
+\end_document
